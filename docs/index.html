@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Player Similarity Engine · Mohamed Salah</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --red:      #C8102E;
+    --gold:     #F6EB61;
+    --gold-dim: #c9c050;
+    --bg:       #0A0A0A;
+    --surface:  #111111;
+    --surface2: #181818;
+    --border:   rgba(255,255,255,0.07);
+    --text:     #E8E8E0;
+    --muted:    #6B6B65;
+    --font-head: 'Bebas Neue', sans-serif;
+    --font-body: 'DM Sans', sans-serif;
+    --font-code: 'DM Mono', monospace;
+  }
+  body { background: var(--bg); color: var(--text); font-family: var(--font-body); font-size: 15px; line-height: 1.7; min-height: 100vh; }
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background-image: repeating-linear-gradient(0deg, transparent, transparent 28px, rgba(255,255,255,0.012) 28px, rgba(255,255,255,0.012) 29px);
+    pointer-events: none; z-index: 0;
+  }
+  .page { position: relative; z-index: 1; max-width: 860px; margin: 0 auto; padding: 0 24px 80px; }
+
+  .hero { padding: 72px 0 56px; border-bottom: 1px solid var(--border); display: grid; grid-template-columns: 1fr auto; gap: 32px; align-items: end; }
+  .badge { display: inline-flex; align-items: center; gap: 6px; background: var(--red); color: #fff; font-family: var(--font-code); font-size: 11px; letter-spacing: 0.08em; padding: 4px 10px; border-radius: 3px; margin-bottom: 20px; }
+  .badge::before { content: ''; display: block; width: 6px; height: 6px; border-radius: 50%; background: var(--gold); }
+  h1 { font-family: var(--font-head); font-size: clamp(48px, 8vw, 82px); line-height: 0.95; letter-spacing: 0.01em; color: #fff; }
+  h1 span { color: var(--red); }
+  .subtitle { color: var(--muted); font-size: 14px; font-weight: 300; max-width: 420px; margin-top: 16px; }
+  .hero-meta { text-align: right; font-family: var(--font-code); font-size: 11px; color: var(--muted); line-height: 1.9; white-space: nowrap; }
+  .hero-meta strong { color: var(--gold-dim); display: block; font-size: 13px; }
+
+  .section { margin-top: 60px; }
+  .section-label { font-family: var(--font-code); font-size: 11px; letter-spacing: 0.12em; color: var(--red); text-transform: uppercase; margin-bottom: 18px; display: flex; align-items: center; gap: 10px; }
+  .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+  h2 { font-family: var(--font-head); font-size: 32px; color: #fff; letter-spacing: 0.02em; margin-bottom: 14px; }
+  p { color: #B0AEA6; font-weight: 300; margin-bottom: 12px; }
+  code { font-family: var(--font-code); font-size: 13px; color: #C3E88D; }
+
+  .stats-row { display: flex; gap: 12px; flex-wrap: wrap; margin: 28px 0; }
+  .stat { background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 14px 20px; flex: 1; min-width: 110px; }
+  .stat-val { font-family: var(--font-head); font-size: 30px; color: #fff; line-height: 1; }
+  .stat-val span { color: var(--red); }
+  .stat-lbl { font-family: var(--font-code); font-size: 10px; color: var(--muted); margin-top: 4px; letter-spacing: 0.06em; }
+
+  .pipeline { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0; margin: 28px 0; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+  .pipe-step { padding: 18px 14px; border-right: 1px solid var(--border); background: var(--surface); transition: background 0.2s; }
+  .pipe-step:last-child { border-right: none; }
+  .pipe-step:hover { background: var(--surface2); }
+  .pipe-num { font-family: var(--font-head); font-size: 28px; color: var(--border); line-height: 1; margin-bottom: 6px; }
+  .pipe-title { font-size: 12px; font-weight: 500; color: #fff; margin-bottom: 4px; }
+  .pipe-desc { font-size: 11px; color: var(--muted); font-family: var(--font-code); }
+  .pipe-step.active .pipe-num { color: var(--red); }
+  .pipe-step.active { background: #160508; }
+
+  .code-wrap { background: #0D0D0D; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin: 20px 0; }
+  .code-header { display: flex; align-items: center; gap: 10px; padding: 10px 16px; background: var(--surface); border-bottom: 1px solid var(--border); }
+  .code-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .code-filename { font-family: var(--font-code); font-size: 12px; color: var(--muted); flex: 1; }
+  .code-lang { font-family: var(--font-code); font-size: 10px; color: var(--red); letter-spacing: 0.08em; text-transform: uppercase; }
+  pre { padding: 20px; overflow-x: auto; font-family: var(--font-code); font-size: 13px; line-height: 1.75; tab-size: 4; }
+  .kw  { color: #C792EA; }
+  .fn  { color: #82AAFF; }
+  .str { color: #C3E88D; }
+  .cm  { color: #546E7A; font-style: italic; }
+  .num { color: #F78C6C; }
+  .cl  { color: #FFCB6B; }
+  .op  { color: #89DDFF; }
+
+  .tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border); margin-top: 32px; }
+  .tab { font-family: var(--font-code); font-size: 12px; padding: 10px 18px; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: color 0.15s, border-color 0.15s; user-select: none; }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--gold-dim); border-bottom-color: var(--gold-dim); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  .results-table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 13px; }
+  .results-table thead th { font-family: var(--font-code); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); }
+  .results-table tbody tr { border-bottom: 1px solid var(--border); transition: background 0.15s; }
+  .results-table tbody tr:hover { background: var(--surface2); }
+  .results-table td { padding: 11px 14px; color: var(--text); }
+  .rank-num { font-family: var(--font-head); font-size: 22px; color: var(--border); }
+  .rank-1 .rank-num { color: var(--gold); }
+  .rank-2 .rank-num { color: #C0C0C0; }
+  .rank-3 .rank-num { color: #CD7F32; }
+  .player-name { font-weight: 500; color: #fff; }
+  .player-sub { font-size: 11px; color: var(--muted); font-family: var(--font-code); }
+  .sim-bar-wrap { display: flex; align-items: center; gap: 10px; }
+  .sim-bar { height: 4px; background: var(--border); border-radius: 2px; flex: 1; overflow: hidden; }
+  .sim-fill { height: 100%; border-radius: 2px; background: var(--red); }
+  .sim-val { font-family: var(--font-code); font-size: 12px; color: var(--muted); white-space: nowrap; }
+
+  .highlight-box { background: #160508; border: 1px solid rgba(200,16,46,0.3); border-radius: 8px; padding: 18px 20px; margin: 20px 0; }
+  .highlight-box .hl-label { font-family: var(--font-code); font-size: 10px; color: var(--red); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 8px; }
+  .highlight-box p { color: #B0AEA6; margin: 0; font-size: 13px; }
+
+  .tech-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 20px 0; }
+  .tech-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px; transition: border-color 0.2s; }
+  .tech-card:hover { border-color: rgba(200,16,46,0.4); }
+  .tech-icon { font-size: 22px; margin-bottom: 8px; }
+  .tech-name { font-weight: 500; font-size: 14px; color: #fff; }
+  .tech-role { font-size: 11px; color: var(--muted); font-family: var(--font-code); margin-top: 3px; }
+
+  .features { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 20px 0; }
+  .feature { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px 18px; display: flex; gap: 14px; align-items: flex-start; }
+  .feat-icon { width: 32px; height: 32px; flex-shrink: 0; background: #160508; border-radius: 6px; border: 1px solid rgba(200,16,46,0.3); display: flex; align-items: center; justify-content: center; font-size: 14px; }
+  .feat-title { font-size: 13px; font-weight: 500; color: #fff; margin-bottom: 3px; }
+  .feat-desc { font-size: 12px; color: var(--muted); font-family: var(--font-code); line-height: 1.5; }
+
+  .footer { margin-top: 80px; padding-top: 28px; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+  .footer-brand { font-family: var(--font-head); font-size: 20px; color: var(--muted); }
+  .footer-brand span { color: var(--red); }
+  .gh-link { display: inline-flex; align-items: center; gap: 8px; background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 10px 18px; color: #fff; text-decoration: none; font-size: 13px; font-family: var(--font-code); transition: border-color 0.2s, background 0.2s; }
+  .gh-link:hover { border-color: rgba(200,16,46,0.5); background: #160508; }
+
+  @media (max-width: 640px) {
+    .hero { grid-template-columns: 1fr; }
+    .hero-meta { text-align: left; }
+    .pipeline { grid-template-columns: 1fr 1fr; }
+    .tech-grid { grid-template-columns: 1fr 1fr; }
+    .features { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="hero">
+    <div>
+      <div class="badge">Python · FBref · scikit-learn · Football Analytics</div>
+      <h1>PLAYER<br><span>SIMILARITY</span><br>ENGINE</h1>
+      <p class="subtitle">Finding who can replace Mohamed Salah at Liverpool FC — using live FBref data, per-90 normalisation, and cosine similarity across 21 attacking metrics.</p>
+    </div>
+    <div class="hero-meta">
+      <strong>#11</strong>
+      Mohamed Salah<br>
+      Liverpool FC<br>
+      ——<br>
+      Season 2025-26<br>
+      Big 5 Leagues
+    </div>
+  </header>
+
+  <section class="section">
+    <div class="section-label">Overview</div>
+    <h2>THE PROBLEM</h2>
+    <p>Mohamed Salah is one of the most complete attacking players in Premier League history. This project scrapes live FBref data using <code>soccerdata</code>, merges shooting, passing, defense, and possession tables, then computes cosine similarity to rank the statistically closest forwards across all Big 5 European leagues.</p>
+    <p>A second filter isolates players under 23 outside the Premier League — targeting affordable, high-upside replacements in cheaper markets.</p>
+    <div class="stats-row">
+      <div class="stat"><div class="stat-val">114</div><div class="stat-lbl">FW / FW,MF players</div></div>
+      <div class="stat"><div class="stat-val">21</div><div class="stat-lbl">Feature dimensions</div></div>
+      <div class="stat"><div class="stat-val">10<span>+</span></div><div class="stat-lbl">Min 90s threshold</div></div>
+      <div class="stat"><div class="stat-val">0.84</div><div class="stat-lbl">Top cosine score</div></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-label">Architecture</div>
+    <h2>PIPELINE</h2>
+    <div class="pipeline">
+      <div class="pipe-step">
+        <div class="pipe-num">01</div>
+        <div class="pipe-title">Ingest</div>
+        <div class="pipe-desc">FBref via soccerdata · Big 5</div>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-num">02</div>
+        <div class="pipe-title">Filter</div>
+        <div class="pipe-desc">FW / FW,MF · ≥10 90s</div>
+      </div>
+      <div class="pipe-step active">
+        <div class="pipe-num">03</div>
+        <div class="pipe-title">Features</div>
+        <div class="pipe-desc">Per-90 · merge · StandardScaler</div>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-num">04</div>
+        <div class="pipe-title">Similarity</div>
+        <div class="pipe-desc">Cosine vs Salah vector</div>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-num">05</div>
+        <div class="pipe-title">Rank</div>
+        <div class="pipe-desc">All + U23 non-PL cut</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-label">Source Code</div>
+    <h2>IMPLEMENTATION</h2>
+
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab('setup', this)">01 · Setup</div>
+      <div class="tab" onclick="switchTab('features', this)">02 · Features</div>
+      <div class="tab" onclick="switchTab('similarity', this)">03 · Similarity</div>
+      <div class="tab" onclick="switchTab('filter', this)">04 · Young Talent</div>
+    </div>
+
+    <div id="tab-setup" class="tab-content active">
+      <div class="code-wrap">
+        <div class="code-header">
+          <div class="code-dot" style="background:#C8102E"></div>
+          <div class="code-dot" style="background:#F6EB61"></div>
+          <div class="code-dot" style="background:#2E8B57"></div>
+          <span class="code-filename">PlayerSimilarity.ipynb · cell 1</span>
+          <span class="code-lang">Python</span>
+        </div>
+        <pre><span class="kw">import</span> pandas <span class="kw">as</span> pd
+<span class="kw">import</span> soccerdata <span class="kw">as</span> sd
+<span class="kw">import</span> warnings
+<span class="kw">import</span> matplotlib.pyplot <span class="kw">as</span> plt
+<span class="kw">from</span> sklearn.preprocessing <span class="kw">import</span> StandardScaler
+<span class="kw">import</span> sys, os
+
+warnings.<span class="fn">filterwarnings</span>(<span class="str">"ignore"</span>)
+
+<span class="cm"># Add project root to Python path</span>
+project_root <span class="op">=</span> os.path.<span class="fn">abspath</span>(<span class="str">".."</span>)
+<span class="kw">if</span> project_root <span class="kw">not in</span> sys.path:
+    sys.path.<span class="fn">append</span>(project_root)
+
+<span class="kw">from</span> functions <span class="kw">import</span> <span class="op">*</span>
+
+<span class="cm"># Scrape Big 5 leagues, season 2025-26 from FBref</span>
+season <span class="op">=</span> [<span class="str">"2025-26"</span>]
+fbref  <span class="op">=</span> sd.<span class="cl">FBref</span>(<span class="str">"Big 5 European Leagues Combined"</span>, season)</pre>
+      </div>
+    </div>
+
+    <div id="tab-features" class="tab-content">
+      <div class="code-wrap">
+        <div class="code-header">
+          <div class="code-dot" style="background:#C8102E"></div>
+          <div class="code-dot" style="background:#F6EB61"></div>
+          <div class="code-dot" style="background:#2E8B57"></div>
+          <span class="code-filename">PlayerSimilarity.ipynb · cell 2</span>
+          <span class="code-lang">Python</span>
+        </div>
+        <pre><span class="cm"># Load each stat category from FBref</span>
+<span class="kw">for</span> i <span class="kw">in</span> [<span class="str">"shooting"</span>, <span class="str">"passing"</span>, <span class="str">"defense"</span>, <span class="str">"possession"</span>, <span class="str">"goal_shot_creation"</span>]:
+    globals()[<span class="fn">f</span><span class="str">"{i}_df"</span>] <span class="op">=</span> <span class="fn">read_players_data</span>(fbref, i)
+
+<span class="cm"># Keep only forwards with 10+ 90s played</span>
+<span class="kw">for</span> name <span class="kw">in</span> [<span class="str">"shooting"</span>, <span class="str">"passing"</span>, <span class="str">"defense"</span>, <span class="str">"possession"</span>]:
+    d <span class="op">=</span> globals()[<span class="fn">f</span><span class="str">"{name}_df"</span>]
+    d <span class="op">=</span> d[d[<span class="str">'pos_'</span>].<span class="fn">isin</span>([<span class="str">'FW'</span>, <span class="str">'FW,MF'</span>])]
+    d <span class="op">=</span> d[d[<span class="str">'90s_'</span>] <span class="op">&gt;=</span> <span class="num">10</span>]
+    globals()[<span class="fn">f</span><span class="str">"{name}_df"</span>] <span class="op">=</span> d
+
+<span class="cm"># Merge all stat tables on player / season / team</span>
+df <span class="op">=</span> shooting_df.<span class="fn">merge</span>(passing_df,   on<span class="op">=</span>[<span class="str">'player_'</span>, <span class="str">'season_'</span>, <span class="str">'team_'</span>], how<span class="op">=</span><span class="str">'outer'</span>, suffixes<span class="op">=</span>(<span class="str">''</span>, <span class="str">'_sh'</span>))
+df <span class="op">=</span> df.<span class="fn">merge</span>(defense_df,    on<span class="op">=</span>[<span class="str">'player_'</span>, <span class="str">'season_'</span>, <span class="str">'team_'</span>], how<span class="op">=</span><span class="str">'outer'</span>, suffixes<span class="op">=</span>(<span class="str">''</span>, <span class="str">'_pos'</span>))
+df <span class="op">=</span> df.<span class="fn">merge</span>(possession_df, on<span class="op">=</span>[<span class="str">'player_'</span>, <span class="str">'season_'</span>, <span class="str">'team_'</span>], how<span class="op">=</span><span class="str">'outer'</span>, suffixes<span class="op">=</span>(<span class="str">''</span>, <span class="str">'_gca'</span>))
+
+<span class="cm"># Normalise cumulative stats to per-90 to remove minutes bias</span>
+feat_90 <span class="op">=</span> [<span class="str">"90s_"</span>, <span class="str">"Expected_xG"</span>, <span class="str">'Total_Cmp'</span>, <span class="str">"Total_Att"</span>, <span class="str">"Total_PrgDist"</span>,
+            <span class="str">"Ast_"</span>, <span class="str">"xAG_"</span>, <span class="str">"Expected_xA"</span>, <span class="str">"KP_"</span>, <span class="str">"1/3_"</span>, <span class="str">"PPA_"</span>, <span class="str">"CrsPA_"</span>, <span class="str">"PrgP_"</span>,
+            <span class="str">"Tackles_Tkl"</span>, <span class="str">"Tackles_TklW"</span>, <span class="str">"Take-Ons_Att"</span>, <span class="str">"Take-Ons_Succ"</span>,
+            <span class="str">"Carries_PrgDist"</span>, <span class="str">"Carries_PrgC"</span>, <span class="str">"Carries_1/3"</span>]
+
+df[feat_90] <span class="op">=</span> df[feat_90].<span class="fn">div</span>(df[<span class="str">'90s_'</span>], axis<span class="op">=</span><span class="num">0</span>)
+
+<span class="cm"># Final 21-dimension feature matrix</span>
+features <span class="op">=</span> [<span class="str">"Standard_Sh/90"</span>, <span class="str">"Standard_SoT/90"</span>, <span class="str">"Expected_xG"</span>,
+            <span class="str">'Total_Cmp'</span>, <span class="str">"Total_Att"</span>, <span class="str">"Total_PrgDist"</span>,
+            <span class="str">"Ast_"</span>, <span class="str">"xAG_"</span>, <span class="str">"Expected_xA"</span>, <span class="str">"KP_"</span>, <span class="str">"1/3_"</span>, <span class="str">"PPA_"</span>,
+            <span class="str">"CrsPA_"</span>, <span class="str">"PrgP_"</span>, <span class="str">"Tackles_Tkl"</span>, <span class="str">"Tackles_TklW"</span>,
+            <span class="str">"Take-Ons_Att"</span>, <span class="str">"Take-Ons_Succ"</span>,
+            <span class="str">"Carries_PrgDist"</span>, <span class="str">"Carries_PrgC"</span>, <span class="str">"Carries_1/3"</span>]
+
+X        <span class="op">=</span> df[features].<span class="fn">fillna</span>(df[features].<span class="fn">median</span>())
+scaler   <span class="op">=</span> <span class="cl">StandardScaler</span>()
+X_scaled <span class="op">=</span> scaler.<span class="fn">fit_transform</span>(X)</pre>
+      </div>
+    </div>
+
+    <div id="tab-similarity" class="tab-content">
+      <div class="code-wrap">
+        <div class="code-header">
+          <div class="code-dot" style="background:#C8102E"></div>
+          <div class="code-dot" style="background:#F6EB61"></div>
+          <div class="code-dot" style="background:#2E8B57"></div>
+          <span class="code-filename">PlayerSimilarity.ipynb · cell 3</span>
+          <span class="code-lang">Python</span>
+        </div>
+        <pre><span class="kw">from</span> sklearn.metrics.pairwise <span class="kw">import</span> cosine_similarity
+
+<span class="cm"># Extract Salah's scaled feature vector</span>
+salah_idx    <span class="op">=</span> df[df[<span class="str">'player_'</span>] <span class="op">==</span> <span class="str">'Mohamed Salah'</span>].index[<span class="num">0</span>]
+salah_vector <span class="op">=</span> X_scaled[salah_idx].<span class="fn">reshape</span>(<span class="num">1</span>, <span class="op">-</span><span class="num">1</span>)
+
+<span class="cm"># Compute cosine similarity against all 114 forwards</span>
+similarities          <span class="op">=</span> <span class="fn">cosine_similarity</span>(salah_vector, X_scaled)[<span class="num">0</span>]
+df[<span class="str">'similarity_score'</span>] <span class="op">=</span> similarities
+
+<span class="cm"># Rank all forwards (excluding Salah himself)</span>
+similar_players <span class="op">=</span> (
+    df[df[<span class="str">'player_'</span>] <span class="op">!=</span> <span class="str">'Mohamed Salah'</span>]
+    .<span class="fn">sort_values</span>(<span class="str">'similarity_score'</span>, ascending<span class="op">=</span><span class="kw">False</span>)
+)
+
+similar_players[[<span class="str">'player_'</span>, <span class="str">'team_'</span>, <span class="str">'age_'</span>, <span class="str">'similarity_score'</span>]]</pre>
+      </div>
+    </div>
+
+    <div id="tab-filter" class="tab-content">
+      <div class="code-wrap">
+        <div class="code-header">
+          <div class="code-dot" style="background:#C8102E"></div>
+          <div class="code-dot" style="background:#F6EB61"></div>
+          <div class="code-dot" style="background:#2E8B57"></div>
+          <span class="code-filename">PlayerSimilarity.ipynb · cell 4</span>
+          <span class="code-lang">Python</span>
+        </div>
+        <pre><span class="cm"># Secondary filter: under 23, outside Premier League</span>
+<span class="cm"># Targets affordable, high-upside replacements</span>
+similar_players_young <span class="op">=</span> similar_players[
+    (similar_players[<span class="str">'age_'</span>]
+        .<span class="fn">str.split</span>(<span class="str">"-"</span>)
+        .<span class="fn">str</span>[<span class="num">0</span>]
+        .<span class="fn">astype</span>(<span class="cl">int</span>) <span class="op">&lt;=</span> <span class="num">23</span>) <span class="op">&amp;</span>
+    (similar_players[<span class="str">'league_'</span>] <span class="op">!=</span> <span class="str">'Premier League'</span>)
+]
+
+similar_players_young[[
+    <span class="str">'player_'</span>, <span class="str">'team_'</span>, <span class="str">'league_'</span>, <span class="str">'age_'</span>, <span class="str">'similarity_score'</span>
+]]</pre>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-label">Output · Live 2025-26 data</div>
+    <h2>REAL RESULTS</h2>
+    <p>Computed from live FBref data — 114 forwards across Big 5 European leagues with at least 10 90-minute appearances.</p>
+
+    <table class="results-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Player</th>
+          <th>Club · League</th>
+          <th>Age</th>
+          <th>Cosine Similarity</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="rank-1">
+          <td class="rank-num">1</td>
+          <td><div class="player-name">Julián Álvarez</div></td>
+          <td><div class="player-sub">Atlético Madrid · La Liga</div></td>
+          <td><div class="player-sub">25</div></td>
+          <td><div class="sim-bar-wrap"><div class="sim-bar"><div class="sim-fill" style="width:84%"></div></div><span class="sim-val">84.4%</span></div></td>
+        </tr>
+        <tr class="rank-2">
+          <td class="rank-num">2</td>
+          <td><div class="player-name">Cody Gakpo</div></td>
+          <td><div class="player-sub">Liverpool · Premier League</div></td>
+          <td><div class="player-sub">26</div></td>
+          <td><div class="sim-bar-wrap"><div class="sim-bar"><div class="sim-fill" style="width:79%"></div></div><span class="sim-val">78.9%</span></div></td>
+        </tr>
+        <tr class="rank-3">
+          <td class="rank-num">3</td>
+          <td><div class="player-name">Mason Greenwood</div></td>
+          <td><div class="player-sub">Marseille · Ligue 1</div></td>
+          <td><div class="player-sub">24</div></td>
+          <td><div class="sim-bar-wrap"><div class="sim-bar"><div class="sim-fill" style="width:75%"></div></div><span class="sim-val">74.7%</span></div></td>
+        </tr>
+        <tr>
+          <td class="rank-num">4</td>
+          <td><div class="player-name">Michael Olise</div></td>
+          <td><div class="player-sub">Bayern Munich · Bundesliga</div></td>
+          <td><div class="player-sub">24</div></td>
+          <td><div class="sim-bar-wrap"><div class="sim-bar"><div class="sim-fill" style="width:75%"></div></div><span class="sim-val">74.6%</span></div></td>
+        </tr>
+        <tr>
+          <td class="rank-num">5</td>
+          <td><div class="player-name">Pedro Neto</div></td>
+          <td><div class="player-sub">Chelsea · Premier League</div></td>
+          <td><div class="player-sub">25</div></td>
+          <td><div class="sim-bar-wrap"><div class="sim-bar"><div class="sim-fill" style="width:74%"></div></div><span class="sim-val">73.7%</span></div></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="highlight-box">
+      <div class="hl-label">U23 · Non-Premier League filter</div>
+      <p>A secondary filter targets players aged ≤23 outside the Premier League — the most cost-effective replacements. This surfaces high-upside talents from Ligue 1, La Liga, Bundesliga, and Serie A who mirror Salah's statistical profile but remain accessible on the transfer market.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-label">Design Decisions</div>
+    <h2>KEY CHOICES</h2>
+    <div class="features">
+      <div class="feature">
+        <div class="feat-icon">⚡</div>
+        <div>
+          <div class="feat-title">Per-90 normalisation</div>
+          <div class="feat-desc">Divides cumulative stats by 90s — removes bias between regulars and squad players</div>
+        </div>
+      </div>
+      <div class="feature">
+        <div class="feat-icon">📐</div>
+        <div>
+          <div class="feat-title">Cosine over Euclidean</div>
+          <div class="feat-desc">Measures direction of play style, not absolute volume — a player can match Salah's profile at a weaker club</div>
+        </div>
+      </div>
+      <div class="feature">
+        <div class="feat-icon">🎯</div>
+        <div>
+          <div class="feat-title">Position pre-filter</div>
+          <div class="feat-desc">Only FW and FW,MF roles — prevents CDMs or CBs polluting the similarity space</div>
+        </div>
+      </div>
+      <div class="feature">
+        <div class="feat-icon">💰</div>
+        <div>
+          <div class="feat-title">Market filter</div>
+          <div class="feat-desc">U23 + non-PL cut targets statistically similar players at affordable transfer fees</div>
+        </div>
+      </div>
+      <div class="feature">
+        <div class="feat-icon">🔗</div>
+        <div>
+          <div class="feat-title">Multi-table merge</div>
+          <div class="feat-desc">Shooting, passing, defense, possession joined on player + season + team for a complete attacking profile</div>
+        </div>
+      </div>
+      <div class="feature">
+        <div class="feat-icon">🩹</div>
+        <div>
+          <div class="feat-title">Median imputation</div>
+          <div class="feat-desc">Missing values filled with column median before scaling — avoids dropping players with partial records</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-label">Stack</div>
+    <h2>TECH STACK</h2>
+    <div class="tech-grid">
+      <div class="tech-card">
+        <div class="tech-icon">⚽</div>
+        <div class="tech-name">soccerdata</div>
+        <div class="tech-role">FBref scraper · Big 5</div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-icon">🐼</div>
+        <div class="tech-name">pandas</div>
+        <div class="tech-role">Data wrangling · merge</div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-icon">🤖</div>
+        <div class="tech-name">scikit-learn</div>
+        <div class="tech-role">StandardScaler · cosine_similarity</div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-icon">📊</div>
+        <div class="tech-name">matplotlib</div>
+        <div class="tech-role">Visualisation</div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-icon">📓</div>
+        <div class="tech-name">Jupyter / VS Code</div>
+        <div class="tech-role">Notebook environment</div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-icon">🐍</div>
+        <div class="tech-name">Python 3.10</div>
+        <div class="tech-role">Runtime</div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="footer-brand">PLAYER<span>SIM</span> · 2025-26</div>
+    <a class="gh-link" href="https://github.com/YOUR_USERNAME/player-similarity">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.745 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+      View on GitHub
+    </a>
+  </footer>
+
+</div>
+<script>
+function switchTab(id, el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('tab-' + id).classList.add('active');
+}
+</script>
+</body>
+</html>
