@@ -52,8 +52,17 @@
   .stat-val span { color: var(--red); }
   .stat-lbl { font-family: var(--font-code); font-size: 10px; color: var(--muted); margin-top: 4px; letter-spacing: 0.06em; }
 
-  .pipeline { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0; margin: 28px 0; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
-  .pipe-step { padding: 18px 14px; border-right: 1px solid var(--border); background: var(--surface); transition: background 0.2s; }
+  /* Multi-season callout */
+  .multi-season-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(246,235,97,0.07); border: 1px solid rgba(246,235,97,0.25);
+    border-radius: 6px; padding: 10px 16px; margin: 20px 0;
+    font-family: var(--font-code); font-size: 12px; color: var(--gold-dim);
+  }
+  .multi-season-badge::before { content: '◈'; font-size: 14px; }
+
+  .pipeline { display: grid; grid-template-columns: repeat(6, 1fr); gap: 0; margin: 28px 0; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+  .pipe-step { padding: 18px 12px; border-right: 1px solid var(--border); background: var(--surface); transition: background 0.2s; }
   .pipe-step:last-child { border-right: none; }
   .pipe-step:hover { background: var(--surface2); }
   .pipe-num { font-family: var(--font-head); font-size: 28px; color: var(--border); line-height: 1; margin-bottom: 6px; }
@@ -61,6 +70,8 @@
   .pipe-desc { font-size: 11px; color: var(--muted); font-family: var(--font-code); }
   .pipe-step.active .pipe-num { color: var(--red); }
   .pipe-step.active { background: #160508; }
+  .pipe-step.gold .pipe-num { color: var(--gold-dim); }
+  .pipe-step.gold { background: #141200; }
 
   .code-wrap { background: #0D0D0D; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin: 20px 0; }
   .code-header { display: flex; align-items: center; gap: 10px; padding: 10px 16px; background: var(--surface); border-bottom: 1px solid var(--border); }
@@ -99,6 +110,14 @@
   .sim-fill { height: 100%; border-radius: 2px; background: var(--red); }
   .sim-val { font-family: var(--font-code); font-size: 12px; color: var(--muted); white-space: nowrap; }
 
+  .highlight-box { background: #160508; border: 1px solid rgba(200,16,46,0.3); border-radius: 8px; padding: 18px 20px; margin: 20px 0; }
+  .highlight-box .hl-label { font-family: var(--font-code); font-size: 10px; color: var(--red); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 8px; }
+  .highlight-box p { color: #B0AEA6; margin: 0; font-size: 13px; }
+
+  /* New: gold highlight box variant */
+  .highlight-box.gold-box { background: #141200; border-color: rgba(246,235,97,0.2); }
+  .highlight-box.gold-box .hl-label { color: var(--gold-dim); }
+
   .tech-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 20px 0; }
   .tech-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px; transition: border-color 0.2s; }
   .tech-card:hover { border-color: rgba(200,16,46,0.4); }
@@ -106,11 +125,14 @@
   .tech-name { font-weight: 500; font-size: 14px; color: #fff; }
   .tech-role { font-size: 11px; color: var(--muted); font-family: var(--font-code); margin-top: 3px; }
 
-  .features-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 20px 0; }
-  .feature-item { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px 18px; display: flex; gap: 14px; align-items: flex-start; }
+  .features { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 20px 0; }
+  .feature { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px 18px; display: flex; gap: 14px; align-items: flex-start; }
   .feat-icon { width: 32px; height: 32px; flex-shrink: 0; background: #160508; border-radius: 6px; border: 1px solid rgba(200,16,46,0.3); display: flex; align-items: center; justify-content: center; font-size: 14px; }
   .feat-title { font-size: 13px; font-weight: 500; color: #fff; margin-bottom: 3px; }
   .feat-desc { font-size: 12px; color: var(--muted); font-family: var(--font-code); line-height: 1.5; }
+
+  /* New: gold feature icon variant */
+  .feature.gold-feat .feat-icon { background: #141200; border-color: rgba(246,235,97,0.25); }
 
   .footer { margin-top: 80px; padding-top: 28px; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
   .footer-brand { font-family: var(--font-head); font-size: 20px; color: var(--muted); }
@@ -123,7 +145,7 @@
     .hero-meta { text-align: left; }
     .pipeline { grid-template-columns: 1fr 1fr; }
     .tech-grid { grid-template-columns: 1fr 1fr; }
-    .features-grid { grid-template-columns: 1fr; }
+    .features { grid-template-columns: 1fr; }
   }
 </style>
 </head>
@@ -132,29 +154,35 @@
 
   <header class="hero">
     <div>
-      <div class="badge">Python · FBref · Scikit-Learn · Cosine Similarity</div>
+      <div class="badge">Python · FBref · scikit-learn · Multi-Season · Football Analytics</div>
       <h1>PLAYER<br><span>SIMILARITY</span><br>ENGINE</h1>
-      <p class="subtitle">Aggregating multi-season FBref data to identify stylistic successors for Mohamed Salah using per-90 normalized attacking metrics and cosine similarity.</p>
+      <p class="subtitle">Finding who can replace Mohamed Salah at Liverpool FC — aggregating multi-season FBref data, per-90 normalisation, and cosine similarity across 21 attacking metrics.</p>
     </div>
     <div class="hero-meta">
       <strong>#11</strong>
       Mohamed Salah<br>
       Liverpool FC<br>
       ——<br>
-      Season 2025-26<br>
+      Multi-Season<br>
       Big 5 Leagues
     </div>
   </header>
 
   <section class="section">
     <div class="section-label">Overview</div>
-    <h2>AGGREGATED ANALYTICS</h2>
-    <p>This engine processes live data across shooting, passing, defense, and possession categories. By grouping data by player and season, it handles multi-club campaigns and filters for consistent performers (minimum 20 cumulative 90s played) to ensure statistical significance.</p>
+    <h2>THE PROBLEM</h2>
+    <p>Mohamed Salah is one of the most complete attacking players in Premier League history. This project scrapes FBref data using <code>soccerdata</code>, aggregates statistics across multiple seasons, merges shooting, passing, defense, and possession tables, then computes cosine similarity to rank the statistically closest forwards across all Big 5 European leagues.</p>
+    <p>Multi-season aggregation reduces noise from one-off performances, giving a more robust picture of a player's sustained attacking profile. A secondary filter isolates players under 23 outside the Premier League — targeting affordable, high-upside replacements.</p>
+
+    <div class="multi-season-badge">
+      Multi-season aggregation — stats summed across all seasons, meta-data kept from the most recent one
+    </div>
+
     <div class="stats-row">
-      <div class="stat"><div class="stat-val">20<span>+</span></div><div class="stat-lbl">90s Threshold</div></div>
+      <div class="stat"><div class="stat-val">114</div><div class="stat-lbl">FW / FW,MF players</div></div>
       <div class="stat"><div class="stat-val">21</div><div class="stat-lbl">Feature dimensions</div></div>
-      <div class="stat"><div class="stat-val">FW<span>+</span></div><div class="stat-lbl">Positional Filter</div></div>
-      <div class="stat"><div class="stat-val">0.84</div><div class="stat-lbl">Top similarity</div></div>
+      <div class="stat"><div class="stat-val">20<span>+</span></div><div class="stat-lbl">Min 90s threshold</div></div>
+      <div class="stat"><div class="stat-val">0.84</div><div class="stat-lbl">Top cosine score</div></div>
     </div>
   </section>
 
@@ -165,27 +193,32 @@
       <div class="pipe-step">
         <div class="pipe-num">01</div>
         <div class="pipe-title">Ingest</div>
-        <div class="pipe-desc">FBref Multi-Category</div>
+        <div class="pipe-desc">FBref via soccerdata · Big 5</div>
       </div>
       <div class="pipe-step">
         <div class="pipe-num">02</div>
-        <div class="pipe-title">Merge</div>
-        <div class="pipe-desc">Outer join on player/team</div>
+        <div class="pipe-title">Filter</div>
+        <div class="pipe-desc">FW / FW,MF · ≥10 90s/season</div>
       </div>
-      <div class="pipe-step active">
+      <div class="pipe-step gold">
         <div class="pipe-num">03</div>
         <div class="pipe-title">Aggregate</div>
-        <div class="pipe-desc">Sum cumulative stats</div>
+        <div class="pipe-desc">Sum across seasons · most recent meta</div>
       </div>
-      <div class="pipe-step">
+      <div class="pipe-step active">
         <div class="pipe-num">04</div>
-        <div class="pipe-title">Normalize</div>
-        <div class="pipe-desc">Per-90 conversion</div>
+        <div class="pipe-title">Features</div>
+        <div class="pipe-desc">Per-90 · StandardScaler · ≥20 90s</div>
       </div>
       <div class="pipe-step">
         <div class="pipe-num">05</div>
-        <div class="pipe-title">Vector</div>
-        <div class="pipe-desc">Cosine Similarity</div>
+        <div class="pipe-title">Similarity</div>
+        <div class="pipe-desc">Cosine vs Salah vector</div>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-num">06</div>
+        <div class="pipe-title">Rank</div>
+        <div class="pipe-desc">All + U23 non-PL cut</div>
       </div>
     </div>
   </section>
@@ -195,122 +228,346 @@
     <h2>IMPLEMENTATION</h2>
 
     <div class="tabs">
-      <div class="tab active" onclick="switchTab('merge', this)">01 · Merge & Group</div>
-      <div class="tab" onclick="switchTab('normalize', this)">02 · Normalization</div>
-      <div class="tab" onclick="switchTab('similarity', this)">03 · Similarity</div>
+      <div class="tab active" onclick="switchTab('setup', this)">01 · Setup</div>
+      <div class="tab" onclick="switchTab('aggregate', this)">02 · Aggregate</div>
+      <div class="tab" onclick="switchTab('features', this)">03 · Features</div>
+      <div class="tab" onclick="switchTab('similarity', this)">04 · Similarity</div>
+      <div class="tab" onclick="switchTab('filter', this)">05 · Young Talent</div>
     </div>
 
-    <div id="tab-merge" class="tab-content active">
+    <!-- TAB 1: Setup -->
+    <div id="tab-setup" class="tab-content active">
       <div class="code-wrap">
         <div class="code-header">
           <div class="code-dot" style="background:#C8102E"></div>
           <div class="code-dot" style="background:#F6EB61"></div>
           <div class="code-dot" style="background:#2E8B57"></div>
-          <span class="code-filename">SimilarityEngine.py</span>
+          <span class="code-filename">PlayerSimilarity.ipynb · cell 1</span>
           <span class="code-lang">Python</span>
         </div>
-        <pre><span class="cm"># Merge stats and keep most recent metadata</span>
-df <span class="op">=</span> shooting_df.<span class="fn">merge</span>(passing_df, on<span class="op">=</span>[<span class="str">'player_'</span>, <span class="str">'season_'</span>, <span class="str">'team_'</span>], how<span class="op">=</span><span class="str">'outer'</span>)
-<span class="cm"># ... additional merges for defense/possession ...</span>
+        <pre><span class="cm">#import functions from functions.py</span>
+result_df <span class="op">=</span> pd.<span class="cl">DataFrame</span>()
+temp_df   <span class="op">=</span> pd.<span class="cl">DataFrame</span>()
 
+<span class="kw">for</span> i <span class="kw">in</span> [<span class="str">"shooting"</span>, <span class="str">"passing"</span>, <span class="str">"defense"</span>, <span class="str">"possession"</span>, <span class="str">"goal_shot_creation"</span>]:
+    globals()[<span class="fn">f</span><span class="str">"{i}_df"</span>] <span class="op">=</span> <span class="fn">read_players_data</span>(fbref, i)
+
+<span class="cm"># Keep only forwards with ≥10 90s — applied per stat table</span>
+shooting_df   <span class="op">=</span> shooting_df[shooting_df[<span class="str">'pos_'</span>].<span class="fn">isin</span>([<span class="str">'FW'</span>, <span class="str">'FW,MF'</span>])]
+shooting_df   <span class="op">=</span> shooting_df[shooting_df[<span class="str">'90s_'</span>] <span class="op">&gt;=</span> <span class="num">10</span>]
+
+passing_df    <span class="op">=</span> passing_df[passing_df[<span class="str">'pos_'</span>].<span class="fn">isin</span>([<span class="str">'FW'</span>, <span class="str">'FW,MF'</span>])]
+passing_df    <span class="op">=</span> passing_df[passing_df[<span class="str">'90s_'</span>] <span class="op">&gt;=</span> <span class="num">10</span>]
+
+defense_df    <span class="op">=</span> defense_df[defense_df[<span class="str">'pos_'</span>].<span class="fn">isin</span>([<span class="str">'FW'</span>, <span class="str">'FW,MF'</span>])]
+defense_df    <span class="op">=</span> defense_df[defense_df[<span class="str">'90s_'</span>] <span class="op">&gt;=</span> <span class="num">10</span>]
+
+possession_df <span class="op">=</span> possession_df[possession_df[<span class="str">'pos_'</span>].<span class="fn">isin</span>([<span class="str">'FW'</span>, <span class="str">'FW,MF'</span>])]
+possession_df <span class="op">=</span> possession_df[possession_df[<span class="str">'90s_'</span>] <span class="op">&gt;=</span> <span class="num">10</span>]
+
+<span class="cm"># Merge all stat tables on player / season / team</span>
+df <span class="op">=</span> shooting_df.<span class="fn">merge</span>(passing_df,   on<span class="op">=</span>[<span class="str">'player_'</span>, <span class="str">'season_'</span>, <span class="str">'team_'</span>], how<span class="op">=</span><span class="str">'outer'</span>, suffixes<span class="op">=</span>(<span class="str">''</span>, <span class="str">'_sh'</span>))
+df <span class="op">=</span> df.<span class="fn">merge</span>(defense_df,    on<span class="op">=</span>[<span class="str">'player_'</span>, <span class="str">'season_'</span>, <span class="str">'team_'</span>], how<span class="op">=</span><span class="str">'outer'</span>, suffixes<span class="op">=</span>(<span class="str">''</span>, <span class="str">'_pos'</span>))
+df <span class="op">=</span> df.<span class="fn">merge</span>(possession_df, on<span class="op">=</span>[<span class="str">'player_'</span>, <span class="str">'season_'</span>, <span class="str">'team_'</span>], how<span class="op">=</span><span class="str">'outer'</span>, suffixes<span class="op">=</span>(<span class="str">''</span>, <span class="str">'_gca'</span>))</pre>
+      </div>
+    </div>
+
+    <!-- TAB 2: Aggregate (NEW) -->
+    <div id="tab-aggregate" class="tab-content">
+      <div class="code-wrap">
+        <div class="code-header">
+          <div class="code-dot" style="background:#C8102E"></div>
+          <div class="code-dot" style="background:#F6EB61"></div>
+          <div class="code-dot" style="background:#2E8B57"></div>
+          <span class="code-filename">PlayerSimilarity.ipynb · cell 2</span>
+          <span class="code-lang">Python</span>
+        </div>
+        <pre>cumulative_cols <span class="op">=</span> [<span class="str">"90s_"</span>, <span class="str">"Standard_Sh/90"</span>, <span class="str">"Standard_SoT/90"</span>, <span class="str">"Expected_xG"</span>,
+                    <span class="str">'Total_Cmp'</span>, <span class="str">"Total_Att"</span>, <span class="str">"Total_PrgDist"</span>,
+                    <span class="str">"Ast_"</span>, <span class="str">"xAG_"</span>, <span class="str">"Expected_xA"</span>, <span class="str">"KP_"</span>, <span class="str">"1/3_"</span>, <span class="str">"PPA_"</span>,
+                    <span class="str">"CrsPA_"</span>, <span class="str">"PrgP_"</span>, <span class="str">"Tackles_Tkl"</span>, <span class="str">"Tackles_TklW"</span>,
+                    <span class="str">"Take-Ons_Att"</span>, <span class="str">"Take-Ons_Succ"</span>,
+                    <span class="str">"Carries_PrgDist"</span>, <span class="str">"Carries_PrgC"</span>, <span class="str">"Carries_1/3"</span>]
+
+<span class="cm"># Keep most recent team & age for display</span>
 most_recent <span class="op">=</span> (
     df.<span class="fn">sort_values</span>(<span class="str">"season_"</span>, ascending<span class="op">=</span><span class="kw">False</span>)
     .<span class="fn">groupby</span>(<span class="str">"player_"</span>)[[<span class="str">"team_"</span>, <span class="str">"age_"</span>, <span class="str">"league_"</span>, <span class="str">"pos_"</span>]]
-    .<span class="fn">first</span>().<span class="fn">reset_index</span>()
+    .<span class="fn">first</span>()
+    .<span class="fn">reset_index</span>()
 )
 
+<span class="cm"># Sum cumulative stats across all seasons per player</span>
 df_agg <span class="op">=</span> (
     df.<span class="fn">groupby</span>(<span class="str">"player_"</span>)[cumulative_cols]
-    .<span class="fn">sum</span>(min_count<span class="op">=</span><span class="num">1</span>).<span class="fn">reset_index</span>()
+    .<span class="fn">sum</span>(min_count<span class="op">=</span><span class="num">1</span>)   <span class="cm"># NaN if player has no data at all</span>
+    .<span class="fn">reset_index</span>()
     .<span class="fn">merge</span>(most_recent, on<span class="op">=</span><span class="str">"player_"</span>, how<span class="op">=</span><span class="str">"left"</span>)
-)</pre>
+)
+
+<span class="cm"># Filter: min 20 combined 90s across all seasons</span>
+df_agg <span class="op">=</span> df_agg[df_agg[<span class="str">"90s_"</span>] <span class="op">&gt;=</span> <span class="num">20</span>]</pre>
+      </div>
+      <div class="highlight-box gold-box" style="margin-top:0;">
+        <div class="hl-label">Why aggregate?</div>
+        <p>Summing across seasons before normalising to per-90 gives a smoother signal — a player who scored 10 goals in 900 minutes over two seasons is ranked equally to one who scored 10 in 900 minutes in one. Single-season samples can be heavily skewed by injuries, form, or fixture difficulty.</p>
       </div>
     </div>
 
-    <div id="tab-normalize" class="tab-content">
+    <!-- TAB 3: Features -->
+    <div id="tab-features" class="tab-content">
       <div class="code-wrap">
         <div class="code-header">
           <div class="code-dot" style="background:#C8102E"></div>
           <div class="code-dot" style="background:#F6EB61"></div>
           <div class="code-dot" style="background:#2E8B57"></div>
-          <span class="code-filename">SimilarityEngine.py</span>
+          <span class="code-filename">PlayerSimilarity.ipynb · cell 3</span>
           <span class="code-lang">Python</span>
         </div>
-        <pre><span class="cm"># Filter for 20+ cumulative 90s and convert to per-90</span>
-df_agg <span class="op">=</span> df_agg[df_agg[<span class="str">"90s_"</span>] <span class="op">&gt;=</span> <span class="num">20</span>]
+        <pre><span class="cm"># Sh/90 & SoT/90 already rate-based — exclude from per-90 division</span>
+feat_90 <span class="op">=</span> [c <span class="kw">for</span> c <span class="kw">in</span> cumulative_cols
+           <span class="kw">if</span> c <span class="kw">not in</span> [<span class="str">"90s_"</span>, <span class="str">"Standard_Sh/90"</span>, <span class="str">"Standard_SoT/90"</span>]]
 
-<span class="cm"># Select columns to divide by 90s (excluding already normalized ones)</span>
-feat_90 <span class="op">=</span> [c <span class="kw">for</span> c <span class="kw">in</span> cumulative_cols <span class="kw">if</span> c <span class="kw">not in</span> [<span class="str">"90s_"</span>, <span class="str">"Standard_Sh/90"</span>, <span class="str">"Standard_SoT/90"</span>]]
 df_agg[feat_90] <span class="op">=</span> df_agg[feat_90].<span class="fn">div</span>(df_agg[<span class="str">"90s_"</span>], axis<span class="op">=</span><span class="num">0</span>)
 
-<span class="cm"># Impute and Scale</span>
-X <span class="op">=</span> df_agg[features].<span class="fn">fillna</span>(df_agg[features].<span class="fn">median</span>())
-X_scaled <span class="op">=</span> <span class="cl">StandardScaler</span>().<span class="fn">fit_transform</span>(X)</pre>
+<span class="cm"># Final 21-dimension feature matrix</span>
+features <span class="op">=</span> [<span class="str">"Standard_Sh/90"</span>, <span class="str">"Standard_SoT/90"</span>, <span class="str">"Expected_xG"</span>,
+            <span class="str">'Total_Cmp'</span>, <span class="str">"Total_Att"</span>, <span class="str">"Total_PrgDist"</span>,
+            <span class="str">"Ast_"</span>, <span class="str">"xAG_"</span>, <span class="str">"Expected_xA"</span>, <span class="str">"KP_"</span>, <span class="str">"1/3_"</span>, <span class="str">"PPA_"</span>,
+            <span class="str">"CrsPA_"</span>, <span class="str">"PrgP_"</span>, <span class="str">"Tackles_Tkl"</span>, <span class="str">"Tackles_TklW"</span>,
+            <span class="str">"Take-Ons_Att"</span>, <span class="str">"Take-Ons_Succ"</span>,
+            <span class="str">"Carries_PrgDist"</span>, <span class="str">"Carries_PrgC"</span>, <span class="str">"Carries_1/3"</span>]
+
+<span class="cm"># Median imputation, then StandardScaler</span>
+X        <span class="op">=</span> df_agg[features]
+X        <span class="op">=</span> df_agg[features].<span class="fn">fillna</span>(X.<span class="fn">median</span>())
+scaler   <span class="op">=</span> <span class="cl">StandardScaler</span>()
+X_scaled <span class="op">=</span> scaler.<span class="fn">fit_transform</span>(X)</pre>
       </div>
     </div>
 
+    <!-- TAB 4: Similarity -->
     <div id="tab-similarity" class="tab-content">
       <div class="code-wrap">
         <div class="code-header">
           <div class="code-dot" style="background:#C8102E"></div>
           <div class="code-dot" style="background:#F6EB61"></div>
           <div class="code-dot" style="background:#2E8B57"></div>
-          <span class="code-filename">SimilarityEngine.py</span>
+          <span class="code-filename">PlayerSimilarity.ipynb · cell 4</span>
           <span class="code-lang">Python</span>
         </div>
-        <pre><span class="cm"># Extract Salah vector and compute similarity</span>
+        <pre><span class="kw">from</span> sklearn.metrics.pairwise <span class="kw">import</span> cosine_similarity
+
+<span class="cm"># Locate Salah's row using np.where on df_agg</span>
 salah_pos    <span class="op">=</span> np.<span class="fn">where</span>(df_agg[<span class="str">'player_'</span>] <span class="op">==</span> <span class="str">'Mohamed Salah'</span>)[<span class="num">0</span>][<span class="num">0</span>]
 salah_vector <span class="op">=</span> X_scaled[salah_pos].<span class="fn">reshape</span>(<span class="num">1</span>, <span class="op">-</span><span class="num">1</span>)
 
-similarities <span class="op">=</span> <span class="fn">cosine_similarity</span>(salah_vector, X_scaled)[<span class="num">0</span>]
+<span class="cm"># Compute cosine similarity against all aggregated forward vectors</span>
+similarities              <span class="op">=</span> <span class="fn">cosine_similarity</span>(salah_vector, X_scaled)[<span class="num">0</span>]
 df_agg[<span class="str">'similarity_score'</span>] <span class="op">=</span> similarities
 
-<span class="cm"># Rank excluding subject</span>
-similar_players <span class="op">=</span> df_agg[df_agg[<span class="str">'player_'</span>] <span class="op">!=</span> <span class="str">'Mohamed Salah'</span>].<span class="fn">sort_values</span>(<span class="str">'similarity_score'</span>, ascending<span class="op">=</span><span class="kw">False</span>)</pre>
+<span class="cm"># Rank all forwards (excluding Salah himself)</span>
+similar_players <span class="op">=</span> (
+    df_agg[df_agg[<span class="str">'player_'</span>] <span class="op">!=</span> <span class="str">'Mohamed Salah'</span>]
+    .<span class="fn">sort_values</span>(<span class="str">'similarity_score'</span>, ascending<span class="op">=</span><span class="kw">False</span>)
+)
+
+similar_players[[<span class="str">'player_'</span>, <span class="str">'team_'</span>, <span class="str">'age_'</span>, <span class="str">'similarity_score'</span>]]</pre>
       </div>
+    </div>
+
+    <!-- TAB 5: Young Talent -->
+    <div id="tab-filter" class="tab-content">
+      <div class="code-wrap">
+        <div class="code-header">
+          <div class="code-dot" style="background:#C8102E"></div>
+          <div class="code-dot" style="background:#F6EB61"></div>
+          <div class="code-dot" style="background:#2E8B57"></div>
+          <span class="code-filename">PlayerSimilarity.ipynb · cell 5</span>
+          <span class="code-lang">Python</span>
+        </div>
+        <pre><span class="cm"># Secondary filter: under 23, outside Premier League</span>
+<span class="cm"># Targets affordable, high-upside replacements</span>
+similar_players_young <span class="op">=</span> similar_players[
+    (similar_players[<span class="str">'age_'</span>]
+        .<span class="fn">str.split</span>(<span class="str">"-"</span>)
+        .<span class="fn">str</span>[<span class="num">0</span>]
+        .<span class="fn">astype</span>(<span class="cl">int</span>) <span class="op">&lt;=</span> <span class="num">23</span>) <span class="op">&amp;</span>
+    (similar_players[<span class="str">'league_'</span>] <span class="op">!=</span> <span class="str">'Premier League'</span>)
+]
+
+similar_players_young[[
+    <span class="str">'player_'</span>, <span class="str">'team_'</span>, <span class="str">'league_'</span>, <span class="str">'age_'</span>, <span class="str">'similarity_score'</span>
+]]</pre>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-label">Output · Multi-season aggregated data</div>
+    <h2>REAL RESULTS</h2>
+    <p>Computed from multi-season FBref data — 114 forwards across Big 5 European leagues with at least 20 combined 90-minute appearances.</p>
+
+    <table class="results-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Player</th>
+          <th>Club · League</th>
+          <th>Age</th>
+          <th>Cosine Similarity</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="rank-1">
+          <td class="rank-num">1</td>
+          <td><div class="player-name">Julián Álvarez</div></td>
+          <td><div class="player-sub">Atlético Madrid · La Liga</div></td>
+          <td><div class="player-sub">25</div></td>
+          <td><div class="sim-bar-wrap"><div class="sim-bar"><div class="sim-fill" style="width:84%"></div></div><span class="sim-val">84.4%</span></div></td>
+        </tr>
+        <tr class="rank-2">
+          <td class="rank-num">2</td>
+          <td><div class="player-name">Cody Gakpo</div></td>
+          <td><div class="player-sub">Liverpool · Premier League</div></td>
+          <td><div class="player-sub">26</div></td>
+          <td><div class="sim-bar-wrap"><div class="sim-bar"><div class="sim-fill" style="width:79%"></div></div><span class="sim-val">78.9%</span></div></td>
+        </tr>
+        <tr class="rank-3">
+          <td class="rank-num">3</td>
+          <td><div class="player-name">Mason Greenwood</div></td>
+          <td><div class="player-sub">Marseille · Ligue 1</div></td>
+          <td><div class="player-sub">24</div></td>
+          <td><div class="sim-bar-wrap"><div class="sim-bar"><div class="sim-fill" style="width:75%"></div></div><span class="sim-val">74.7%</span></div></td>
+        </tr>
+        <tr>
+          <td class="rank-num">4</td>
+          <td><div class="player-name">Michael Olise</div></td>
+          <td><div class="player-sub">Bayern Munich · Bundesliga</div></td>
+          <td><div class="player-sub">24</div></td>
+          <td><div class="sim-bar-wrap"><div class="sim-bar"><div class="sim-fill" style="width:75%"></div></div><span class="sim-val">74.6%</span></div></td>
+        </tr>
+        <tr>
+          <td class="rank-num">5</td>
+          <td><div class="player-name">Pedro Neto</div></td>
+          <td><div class="player-sub">Chelsea · Premier League</div></td>
+          <td><div class="player-sub">25</div></td>
+          <td><div class="sim-bar-wrap"><div class="sim-bar"><div class="sim-fill" style="width:74%"></div></div><span class="sim-val">73.7%</span></div></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="highlight-box">
+      <div class="hl-label">U23 · Non-Premier League filter</div>
+      <p>A secondary filter targets players aged ≤23 outside the Premier League — the most cost-effective replacements. This surfaces high-upside talents from Ligue 1, La Liga, Bundesliga, and Serie A who mirror Salah's statistical profile but remain accessible on the transfer market.</p>
     </div>
   </section>
 
   <section class="section">
     <div class="section-label">Design Decisions</div>
     <h2>KEY CHOICES</h2>
-    <div class="features-grid">
-      <div class="feature-item">
-        <div class="feat-icon">📊</div>
+    <div class="features">
+      <div class="feature gold-feat">
+        <div class="feat-icon">◈</div>
         <div>
-          <div class="feat-title">Cumulative Aggregation</div>
-          <div class="feat-desc">Sums stats across multiple seasons/teams to get a wider sample size of player behavior.</div>
+          <div class="feat-title">Multi-season aggregation</div>
+          <div class="feat-desc">Stats summed across all seasons via groupby — reduces single-season noise, rewards sustained performers</div>
         </div>
       </div>
-      <div class="feature-item">
-        <div class="feat-icon">⏱️</div>
+      <div class="feature gold-feat">
+        <div class="feat-icon">🗓</div>
         <div>
-          <div class="feat-title">Volume Threshold</div>
-          <div class="feat-desc">The 20-90s filter ensures we aren't comparing Salah to "one-season wonders" or small samples.</div>
+          <div class="feat-title">Most-recent meta</div>
+          <div class="feat-desc">Team, age, league pulled from latest season — player could have moved clubs between aggregated seasons</div>
         </div>
       </div>
-      <div class="feature-item">
+      <div class="feature">
+        <div class="feat-icon">⚡</div>
+        <div>
+          <div class="feat-title">Per-90 normalisation</div>
+          <div class="feat-desc">Divides cumulative stats by combined 90s — Sh/90 & SoT/90 excluded as they are already rate-based</div>
+        </div>
+      </div>
+      <div class="feature">
         <div class="feat-icon">📐</div>
         <div>
-          <div class="feat-title">Selective Normalization</div>
-          <div class="feat-desc">Smart logic divides only cumulative totals by 90s, preserving existing per-90 metrics.</div>
+          <div class="feat-title">Cosine over Euclidean</div>
+          <div class="feat-desc">Measures direction of play style, not absolute volume — a player can match Salah's profile at a weaker club</div>
         </div>
       </div>
-      <div class="feature-item">
-        <div class="feat-icon">🧬</div>
+      <div class="feature">
+        <div class="feat-icon">🎯</div>
         <div>
-          <div class="feat-title">Metadata Preservation</div>
-          <div class="feat-desc">Uses <code>.first()</code> on sorted seasons to ensure Team and League info is current.</div>
+          <div class="feat-title">Position pre-filter</div>
+          <div class="feat-desc">Only FW and FW,MF roles — prevents CDMs or CBs polluting the similarity space</div>
+        </div>
+      </div>
+      <div class="feature">
+        <div class="feat-icon">🔢</div>
+        <div>
+          <div class="feat-title">≥20 90s threshold</div>
+          <div class="feat-desc">Combined across seasons — stricter than single-season cut to ensure statistical reliability at aggregate level</div>
+        </div>
+      </div>
+      <div class="feature">
+        <div class="feat-icon">🔗</div>
+        <div>
+          <div class="feat-title">Multi-table merge</div>
+          <div class="feat-desc">Shooting, passing, defense, possession joined on player + season + team for a complete attacking profile</div>
+        </div>
+      </div>
+      <div class="feature">
+        <div class="feat-icon">🩹</div>
+        <div>
+          <div class="feat-title">Median imputation</div>
+          <div class="feat-desc">Missing values filled with column median before scaling — avoids dropping players with partial records</div>
         </div>
       </div>
     </div>
   </section>
 
+  <section class="section">
+    <div class="section-label">Stack</div>
+    <h2>TECH STACK</h2>
+    <div class="tech-grid">
+      <div class="tech-card">
+        <div class="tech-icon">⚽</div>
+        <div class="tech-name">soccerdata</div>
+        <div class="tech-role">FBref scraper · Big 5</div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-icon">🐼</div>
+        <div class="tech-name">pandas</div>
+        <div class="tech-role">Data wrangling · groupby · merge</div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-icon">🤖</div>
+        <div class="tech-name">scikit-learn</div>
+        <div class="tech-role">StandardScaler · cosine_similarity</div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-icon">🔢</div>
+        <div class="tech-name">numpy</div>
+        <div class="tech-role">np.where · vector ops</div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-icon">📓</div>
+        <div class="tech-name">Jupyter / VS Code</div>
+        <div class="tech-role">Notebook environment</div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-icon">🐍</div>
+        <div class="tech-name">Python 3.10</div>
+        <div class="tech-role">Runtime</div>
+      </div>
+    </div>
+  </section>
+
   <footer class="footer">
-    <div class="footer-brand">PLAYER<span>SIM</span> · 2025-26</div>
-    <a class="gh-link" href="#">
+    <div class="footer-brand">PLAYER<span>SIM</span> · Multi-Season</div>
+    <a class="gh-link" href="https://github.com/YOUR_USERNAME/player-similarity">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.745 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
-      View Code
+      View on GitHub
     </a>
   </footer>
 
