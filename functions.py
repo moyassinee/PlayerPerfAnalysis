@@ -1,6 +1,9 @@
 import soccerdata as sd
 import pandas as pd
+import numpy as np
 from mplsoccer import Radar, FontManager, grid
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics.pairwise import cosine_similarity
 
 #data_type can be "standard", "shooting", "passing", "passing_types", "goal_shot_creation", "defense", "possession", 
 # "playing_time", "misc", "keeper","keeper_adv"
@@ -45,6 +48,7 @@ def get_players_match_stats(fbref, data_type: str, match_id: str) -> pd.DataFram
     match_info = fbref.read_player_match_stats(stat_type=data_type, match_id=match_id)
     match_info = match_info.reset_index()
     return match_info
+    
 
 
 def plot_radar_chart_to_compare(df_player1, df_player2,min_scale=0, max_scale=3):
@@ -103,3 +107,85 @@ def plot_radar_chart_to_compare(df_player1, df_player2,min_scale=0, max_scale=3)
                                     ha='right', va='center', color='#B6282F')
     
     fig.set_facecolor('#121212')
+
+
+def parse_age(age_str) -> float:
+    """'24-013' -> 24 + 13/365 ; '24' -> 24.0 ; NaN-safe."""
+    if pd.isna(age_str):
+        return np.nan
+    s = str(age_str)
+    if "-" in s:
+        years, days = s.split("-")
+        try:
+            return float(years) + float(days) / 365
+        except ValueError:
+            return np.nan
+    try:
+        return float(s)
+    except ValueError:
+        return np.nan
+
+    
+def map_position(pos_str) -> str | None:
+    if pd.isna(pos_str):
+        return None
+    s = str(pos_str)
+    if "GK" in s:
+        return "GK"
+    if "DF" in s:
+        return "DF"
+    if "MF" in s:
+        return "MF"
+    if "FW" in s:
+        return "FW"
+    return None
+
+
+def get_similar_players(player_name: str, df: pd.DataFrame, features: list, top_n: int = 10,
+                         min_90s: float = 10) -> pd.DataFrame:
+    
+    row = df[df["player_"] == player_name]
+    if row.empty:
+        raise ValueError(f"'{player_name}' not found. Use search_players() to check spelling.")
+    pos_group = row["pos_group"].iloc[0]
+    if pos_group not in features or not features[pos_group]:
+        raise ValueError(f"No feature set defined yet for position group '{pos_group}'.")
+ 
+    features = [f for f in features[pos_group] if f in df.columns]
+    pool = df[(df["pos_group"] == pos_group) & (df["90s_"] >= min_90s)].copy()
+    if player_name not in pool["player_"].values:
+        pool = pd.concat([pool, row])  # keep target even if below min_90s
+ 
+    X = pool[features].fillna(pool[features].median())
+    X_scaled = StandardScaler().fit_transform(X)
+ 
+    idx = pool.index.get_loc(pool[pool["player_"] == player_name].index[0])
+    target_vec = X_scaled[idx].reshape(1, -1)
+    pool["similarity_score"] = cosine_similarity(target_vec, X_scaled)[0]
+ 
+    return (
+        pool[pool["player_"] != player_name]
+        .sort_values("similarity_score", ascending=False)
+        [["player_", "team_", "age_", "pos_", "similarity_score"]]
+        .head(top_n)
+        .reset_index(drop=True)
+    )
+
+def search_players(query: str, df: pd.DataFrame) -> pd.DataFrame:
+    """Case-insensitive substring search, e.g. search_players('salah', df_agg)."""
+    return df[df["player_"].str.contains(query, case=False, na=False)][["player_", "team_", "pos_", "age_"]]
+
+def interactive_similarity(df: pd.DataFrame,features, top_n: int = 10):
+    query = input("Search player name: ").strip()
+    matches = search_players(query, df)
+    if matches.empty:
+        print("No matches found.")
+        return
+    matches = matches.reset_index(drop=True)
+    print(matches)
+    choice = int(input(f"Pick a row number (0-{len(matches) - 1}): "))
+    player_name = matches.loc[choice, "player_"]
+    result = get_similar_players(player_name, df,features, top_n=top_n)
+    print(f"\nMost similar players to {player_name} ({matches.loc[choice, 'pos_']}):\n")
+    print(result.to_string(index=False))
+    return result
